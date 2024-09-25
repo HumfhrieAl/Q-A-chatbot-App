@@ -1,4 +1,4 @@
-streamlit==1.25.0
-python-dotenv==1.0.0
-langchain==0.0.304
-huggingface-hub==0.17.1
+streamlit
+python-dotenv
+langchain
+huggingface-hub
