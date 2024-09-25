@@ -1,48 +1,39 @@
-import os
-from dotenv import load_dotenv
 import streamlit as st
-from langchain_community.llms import HuggingFaceEndpoint
 from langchain.llms import HuggingFaceEndpoint
 
-# Loading the environment variables from the .env file
-load_dotenv('.env')
+# To Access the HuggingFace API key securely from Streamlit secrets
+api_key = st.secrets["HUGGINGFACE_API_KEY"]
 
-# Function to return the response from Hugging Face Inference API
+# Define the endpoint URL 
+endpoint_url = "https://api-inference.huggingface.co/models/tiiuae/falcon-7b-instruct"
+
+# Initializing the HuggingFace model using LangChain and the API key
+llm = HuggingFaceEndpoint(
+    endpoint_url=endpoint_url, 
+    api_key=api_key, 
+    timeout=300 
+)
+
+# Function to return the response from HuggingFace Inference API
 def load_answer(question):
-    # To Get the API key from the environment variable
-    api_key = os.getenv("HUGGINGFACE_API_KEY")
-    if not api_key:
-        raise ValueError("API key not found. Please ensure it's set in the .env-sample file.")
+    return llm.invoke(question)
 
-    # Hugging Face Inference API endpoint URL
-    endpoint_url = "https://api-inference.huggingface.co/models/tiiuae/falcon-7b-instruct"
-    
-    # Use the HuggingFaceEndpoint not OpenAI
-    llm = HuggingFaceEndpoint(endpoint_url=endpoint_url, api_key=api_key)
-    
-    # Invoke the model with the user's question
-    answer = llm.invoke(question)
-    
-    return answer
+# Streamlit UI
+st.set_page_config(page_title="LangChain HuggingFace Demo", page_icon=":robot:")
+st.header("LangChain HuggingFace Demo")
 
-# App UI starts here
-st.set_page_config(page_title="LangChain Demo", page_icon=":robot:")
-st.header("LangChain Demo")
-
-# To Get the user input
+# Get user input
 def get_text():
     input_text = st.text_input("You: ", key="input")
     return input_text
 
 user_input = get_text()
 
-#  user provides input, load the answer
-if user_input:
-    response = load_answer(user_input)
-
-submit = st.button('Generate')  
-
-# when the generate button is clicked, display the response
-if submit:
-    st.subheader("Answer:")
-    st.write(response)
+# If the user submits a question
+if st.button('Generate'):
+    if user_input:
+        response = load_answer(user_input)
+        st.subheader("Answer:")
+        st.write(response)
+    else:
+        st.error("Please enter a question.")
